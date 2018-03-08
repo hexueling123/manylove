@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>爱心</title>
+</head>
+<style>
+	*{
+		margin: 0;
+	}
+	canvas{
+		display: block;
+		background-color: pink;
+	}
+</style>
+<body>
+<canvas></canvas>
+<script>
+var canvas = document.querySelector('canvas');
+var ctx = canvas.getContext('2d');
+var ww = canvas.width = window.innerWidth;
+var hh = canvas.height = window.innerHeight;
+var heartList=[];
+// window.onresize = function(){
+// 	canvas.width = ww = window.innerWidth;
+// 	canvas.height = ww = window.innerHeight;
+// };
+function heartpath(){
+	var vertices = [];
+	for(var i=0;i<30;i++){
+		var step = i / 30 * (Math.PI * 2);
+		var vector = {
+			x : (15 * Math.pow(Math.sin(step), 3)),
+			y : -(13 * Math.cos(step) - 5 * Math.cos(2 * step) - 2 * Math.cos(3 * step) - Math.cos(4 * step))
+		};
+		vertices.push(vector);
+	}
+	return vertices;
+};
+var vertices=heartpath();
+function Heart(x,y){
+	this.x=x || Math.random()*ww;
+	this.y=y || Math.random()*hh;
+	this.vx=(Math.random()-0.5)*5;//从-5到5
+	this.vy=(Math.random()-0.5)*5;
+	this.color='#f30';
+	this.scale=2;
+	this.globalAlpha=1;
+	this.shadowBlur=5/Math.pow(this.scale-0.8,2);
+	this.init();
+};
+Heart.prototype={
+	init:function(){
+		ctx.globalCompositeOperation='screen';//图片叠加
+		ctx.fillStyle=this.color;
+		ctx.shadowColor=this.color;
+	},
+	draw:function(){
+		//画影子
+		ctx.save();
+		ctx.beginPath();
+		ctx.translate(-2000,0);
+		ctx.scale(this.scale,this.scale);
+		ctx.shadowBlur=this.shadowBlur;
+		ctx.globalAlpha=this.globalAlpha;
+
+		ctx.shadowOffsetX=2000+this.x;
+		ctx.shadowOffsetY=this.y;
+		// for(var i=0;i<vertices.length;i++){
+		// 	ctx.lineTo(vertices[i].x, vertices[i].y);
+		// };
+		// 使用forEach()优化代码
+		// console.log(this.x,this.y);
+		vertices.forEach(function(item){
+			ctx.lineTo(item.x, item.y)
+		});
+		ctx.fill();	
+		ctx.restore();
+		this.update();
+	},
+	update:function(){
+		this.x+=this.vx;
+		this.y+=this.vy;
+		this.scale-=0.03;
+		this.globalAlpha-=0.02;
+		// this.shadowBlur=5/Math.pow(this.scale-0.8,2);
+	}
+
+};
+var heart=new Heart();
+heartList.push(heart);
+
+function render(){
+	ctx.clearRect(0, 0, ww, hh);
+	heartList.push(new Heart());
+	heartList = heartList.filter(function(item,i){
+		item.draw();
+		return item.globalAlpha>0.1;
+	});
+	requestAnimationFrame(render);//渲染器不停执行下去
+};
+render();
+// var down=false;
+// canvas.addEventListener('mousedown',function(){
+// 	down=true;
+// });
+canvas.addEventListener('mousemove',function(e){
+	// if(down){
+	// 	// love.push([e.offsetX,e.offsetY]);
+	// }
+	heartList.push( new Heart(e.offsetX,e.offsetY) );		
+});
+// canvas.addEventListener('mouseup',function(){
+// 	down=false;
+// });
+
+ </script>
+</body>
+</html>
